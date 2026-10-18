@@ -1,0 +1,34 @@
+{
+  "modelo": "m1",
+  "prueba": {
+    "exactitud": 0.965655915708196,
+    "precision": 0.9671302149178256,
+    "sensibilidad": 0.9654519640321817,
+    "f1": 0.9662903607799794,
+    "VP": 6120,
+    "VN": 5886,
+    "FP": 208,
+    "FN": 219,
+    "n": 12433
+  },
+  "latencia_ms_por_imagen": 4.052549666666891,
+  "imagenes_por_segundo": 246.75823426057403,
+  "dispositivo": "NVIDIA GeForce RTX 3050 6GB Laptop GPU",
+  "mejor_f1_validacion": 0.9728867623604466,
+  "exactitud_por_gafas": {
+    "0.0": 0.9722,
+    "1.0": 0.9461
+  },
+  "exactitud_por_iluminacion": {
+    "buena": 0.957,
+    "mala": 0.9684
+  },
+  "exactitud_por_reflejo": {
+    "0.0": 0.9696,
+    "1.0": 0.9851,
+    "2.0": 0.929
+  },
+  "exactitud_por_sensor": {
+    "1.0": 0.9657
+  }
+}

@@ -1,0 +1,43 @@
+m1 en cuda: entrenamiento 58624, validación 12756, prueba 12433
+parámetros: 1,518,881
+epoca 1 | perdida_ent 0.0562 | perdida_val 0.0951 | exactitud_val 0.9621 | f1_val 0.9611 | eta 0.0010 | segundos 288.2324
+epoca 2 | perdida_ent 0.0355 | perdida_val 0.0956 | exactitud_val 0.9651 | f1_val 0.9641 | eta 0.0010 | segundos 83.6235
+epoca 3 | perdida_ent 0.0330 | perdida_val 0.0711 | exactitud_val 0.9733 | f1_val 0.9729 | eta 0.0010 | segundos 80.7383
+epoca 4 | perdida_ent 0.0300 | perdida_val 0.1176 | exactitud_val 0.9601 | f1_val 0.9589 | eta 0.0010 | segundos 81.3698
+epoca 5 | perdida_ent 0.0299 | perdida_val 0.0925 | exactitud_val 0.9631 | f1_val 0.9625 | eta 0.0010 | segundos 76.3854
+epoca 6 | perdida_ent 0.0288 | perdida_val 0.2856 | exactitud_val 0.8867 | f1_val 0.8949 | eta 0.0005 | segundos 76.3486
+epoca 7 | perdida_ent 0.0235 | perdida_val 0.1171 | exactitud_val 0.9517 | f1_val 0.9509 | eta 0.0005 | segundos 8906.5365
+{
+  "modelo": "m1",
+  "prueba": {
+    "exactitud": 0.965655915708196,
+    "precision": 0.9671302149178256,
+    "sensibilidad": 0.9654519640321817,
+    "f1": 0.9662903607799794,
+    "VP": 6120,
+    "VN": 5886,
+    "FP": 208,
+    "FN": 219,
+    "n": 12433
+  },
+  "latencia_ms_por_imagen": 4.052549666666891,
+  "imagenes_por_segundo": 246.75823426057403,
+  "dispositivo": "NVIDIA GeForce RTX 3050 6GB Laptop GPU",
+  "mejor_f1_validacion": 0.9728867623604466,
+  "exactitud_por_gafas": {
+    "0.0": 0.9722,
+    "1.0": 0.9461
+  },
+  "exactitud_por_iluminacion": {
+    "buena": 0.957,
+    "mala": 0.9684
+  },
+  "exactitud_por_reflejo": {
+    "0.0": 0.9696,
+    "1.0": 0.9851,
+    "2.0": 0.929
+  },
+  "exactitud_por_sensor": {
+    "1.0": 0.9657
+  }
+}

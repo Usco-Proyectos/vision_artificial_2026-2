@@ -1,0 +1,82 @@
+dataset.csv: 144832 registros, 169 sujetos
+{
+  "mrl": {
+    "registros_entrada": 84898,
+    "duplicados_quitados": 38,
+    "registros": 84860,
+    "sujetos": 37,
+    "atipicos_marcados": 0,
+    "por_particion": {
+      "entrenamiento": {
+        "0": 29312,
+        "1": 30359
+      },
+      "prueba": {
+        "0": 6339,
+        "1": 6094
+      },
+      "validacion": {
+        "0": 6293,
+        "1": 6463
+      }
+    },
+    "entrenamiento_balanceado": {
+      "0": 29312,
+      "1": 29312
+    }
+  },
+  "yawdd": {
+    "registros_entrada": 22333,
+    "duplicados_quitados": 0,
+    "registros": 22333,
+    "sujetos": 90,
+    "atipicos_marcados": 184,
+    "por_particion": {
+      "entrenamiento": {
+        "0": 14523,
+        "1": 1096
+      },
+      "prueba": {
+        "0": 3110,
+        "1": 229
+      },
+      "validacion": {
+        "0": 3140,
+        "1": 235
+      }
+    },
+    "entrenamiento_balanceado": {
+      "0": 1096,
+      "1": 1096
+    }
+  },
+  "uta": {
+    "registros_entrada": 37639,
+    "duplicados_quitados": 0,
+    "registros": 37639,
+    "sujetos": 42,
+    "atipicos_marcados": 255,
+    "por_particion": {
+      "combinador": {
+        "0.0": 2623,
+        "1.0": 2599
+      },
+      "entrenamiento": {
+        "0.0": 6241,
+        "1.0": 6159
+      },
+      "prueba": {
+        "0.0": 2538,
+        "1.0": 2440
+      },
+      "validacion": {
+        "0.0": 1320,
+        "1.0": 1276
+      }
+    },
+    "entrenamiento_balanceado": {
+      "0.0": 6241,
+      "1.0": 6119
+    }
+  }
+}

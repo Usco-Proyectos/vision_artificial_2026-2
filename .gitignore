@@ -1,0 +1,7 @@
+# Los recortes van como archivos del Release (src/empaquetar_recortes.py), no en el repositorio
+datos/procesado/recortes/
+release/
+datos/crudo/
+__pycache__/
+.venv/
+*.pyc

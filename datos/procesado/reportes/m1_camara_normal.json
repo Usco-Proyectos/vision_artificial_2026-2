@@ -1,0 +1,54 @@
+{
+  "umbrales_ear": {
+    "cerrado_si_menor": 0.15,
+    "abierto_si_mayor": 0.25
+  },
+  "acuerdo_con_ear_todas": {
+    "exactitud": 0.9638564487255988,
+    "precision": 0.7189738849087127,
+    "sensibilidad": 0.8663324979114453,
+    "f1": 0.78580449608487,
+    "VP": 3111,
+    "VN": 42117,
+    "FP": 1216,
+    "FN": 480,
+    "n": 46924
+  },
+  "acuerdo_con_ear_uta": {
+    "exactitud": 0.9778648591400128,
+    "precision": 0.8594570928196147,
+    "sensibilidad": 0.8651388276773909,
+    "f1": 0.8622886009224687,
+    "VP": 1963,
+    "VN": 25736,
+    "FP": 321,
+    "FN": 306,
+    "n": 28326
+  },
+  "acuerdo_con_ear_yawdd": {
+    "exactitud": 0.9425207011506613,
+    "precision": 0.5619187469407734,
+    "sensibilidad": 0.8683812405446294,
+    "f1": 0.6823179791976226,
+    "VP": 1148,
+    "VN": 16381,
+    "FP": 895,
+    "FN": 174,
+    "n": 18598
+  },
+  "correlacion_spearman_p_vs_ear": {
+    "todas": -0.4495,
+    "uta": -0.5963,
+    "yawdd": -0.518
+  },
+  "acuerdo_entre_ojos": 0.8938,
+  "uta_fraccion_cerrado_por_kss": {
+    "0": 0.0352,
+    "5": 0.0612,
+    "10": 0.1445
+  },
+  "fraccion_cerrado_total": {
+    "uta": 0.08,
+    "yawdd": 0.1348
+  }
+}

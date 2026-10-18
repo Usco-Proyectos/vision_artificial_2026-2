@@ -1,0 +1,36 @@
+{
+  "modelo": "m1_aleatoria",
+  "prueba": {
+    "exactitud": 0.9912011941236546,
+    "precision": 0.9942492012779552,
+    "sensibilidad": 0.9879365079365079,
+    "f1": 0.9910828025477707,
+    "VP": 6224,
+    "VN": 6393,
+    "FP": 36,
+    "FN": 76,
+    "n": 12729
+  },
+  "latencia_ms_por_imagen": 5.756051333349508,
+  "imagenes_por_segundo": 173.73020879890055,
+  "dispositivo": "NVIDIA GeForce RTX 3050 6GB Laptop GPU",
+  "mejor_f1_validacion": 0.9906807771284157,
+  "exactitud_por_gafas": {
+    "0.0": 0.9916,
+    "1.0": 0.9901
+  },
+  "exactitud_por_iluminacion": {
+    "buena": 0.9918,
+    "mala": 0.9909
+  },
+  "exactitud_por_reflejo": {
+    "0.0": 0.9912,
+    "1.0": 0.9943,
+    "2.0": 0.99
+  },
+  "exactitud_por_sensor": {
+    "1.0": 0.9908,
+    "2.0": 0.9922,
+    "3.0": 0.9976
+  }
+}
