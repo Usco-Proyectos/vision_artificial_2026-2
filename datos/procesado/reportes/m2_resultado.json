@@ -1,0 +1,84 @@
+{
+  "modelo": "m2",
+  "prueba": {
+    "exactitud": 0.9826295297993412,
+    "precision": 0.8638297872340426,
+    "sensibilidad": 0.8864628820960698,
+    "f1": 0.875,
+    "VP": 203,
+    "VN": 3078,
+    "FP": 32,
+    "FN": 26,
+    "n": 3339
+  },
+  "precision_promedio_AP": 0.9367449736384094,
+  "proporcion_bostezo_prueba": 0.0685834065079689,
+  "pesos_clase": {
+    "w0": 0.537733250705777,
+    "w1": 7.125456204379562
+  },
+  "latencia_ms_por_imagen": 18.13671233326507,
+  "imagenes_por_segundo": 55.13678452989912,
+  "dispositivo": "NVIDIA GeForce RTX 3050 6GB Laptop GPU",
+  "mejor_f1_validacion": 0.8987854251012146,
+  "por_situacion": {
+    "Normal": {
+      "n": 960,
+      "bostezos": 0,
+      "exactitud": 0.999,
+      "marcados_como_bostezo": 0.001
+    },
+    "Talking": {
+      "n": 1297,
+      "bostezos": 1,
+      "exactitud": 0.9846,
+      "marcados_como_bostezo": 0.0162
+    },
+    "Talking&Yawning": {
+      "n": 193,
+      "bostezos": 23,
+      "exactitud": 0.9741,
+      "marcados_como_bostezo": 0.1036
+    },
+    "Yawning": {
+      "n": 889,
+      "bostezos": 205,
+      "exactitud": 0.964,
+      "marcados_como_bostezo": 0.2171
+    }
+  },
+  "por_gafas": {
+    "0.0": {
+      "n": 2840,
+      "bostezos": 179,
+      "exactitud": 0.9831,
+      "marcados_como_bostezo": 0.0673
+    },
+    "1.0": {
+      "n": 407,
+      "bostezos": 35,
+      "exactitud": 0.9803,
+      "marcados_como_bostezo": 0.0762
+    },
+    "2.0": {
+      "n": 92,
+      "bostezos": 15,
+      "exactitud": 0.9783,
+      "marcados_como_bostezo": 0.1413
+    }
+  },
+  "por_genero": {
+    "hombre": {
+      "n": 849,
+      "bostezos": 51,
+      "exactitud": 0.9788,
+      "marcados_como_bostezo": 0.0577
+    },
+    "mujer": {
+      "n": 2490,
+      "bostezos": 178,
+      "exactitud": 0.9839,
+      "marcados_como_bostezo": 0.0747
+    }
+  }
+}

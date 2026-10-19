@@ -5,3 +5,5 @@ datos/crudo/
 __pycache__/
 .venv/
 *.pyc
+*_control.pt
+*_rapido*

@@ -42,10 +42,12 @@ def a_tres_canales(t):
     return t.expand(3, -1, -1)
 
 
-class OjosMRL(Dataset):
-    def __init__(self, df, aumentar):
-        self.rutas = [str(config.PROCESADO / r) for r in df["ruta_ojo"]]
-        self.y = (1 - df["ojo"].to_numpy()).astype(np.float32)  # 1 = cerrado
+class Recortes(Dataset):
+    """Recortes grises de 96x96 con su etiqueta. Lo usan M1 (ojos) y M2 (boca)."""
+
+    def __init__(self, rutas, y, aumentar):
+        self.rutas = [str(config.PROCESADO / r) for r in rutas]
+        self.y = np.asarray(y, dtype=np.float32)
         pasos = [transforms.ToTensor()]  # gris uint8 -> 1x96x96 en [0, 1]
         if aumentar:
             pasos += [transforms.RandomHorizontalFlip(),
@@ -60,6 +62,8 @@ class OjosMRL(Dataset):
 
     def __getitem__(self, i):
         img = cv2.imread(self.rutas[i], cv2.IMREAD_GRAYSCALE)
+        if img is None:
+            raise FileNotFoundError(f"No está el recorte {self.rutas[i]}. ¿Están los recortes en {config.RECORTES}?")
         return self.tf(img), self.y[i]
 
 
@@ -110,39 +114,20 @@ def medir_latencia(red, disp, repeticiones=300):
     return {"latencia_ms_por_imagen": ms, "imagenes_por_segundo": 1000 / ms}
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--particion", choices=["sujeto", "aleatoria"], default="sujeto")
-    ap.add_argument("--hilos", type=int, default=2, help="procesos que leen imágenes")
-    ap.add_argument("--rapido", action="store_true", help="prueba corta: pocas imágenes y 1 época")
-    args = ap.parse_args()
+def cargadores(ent, val, pru, col_ruta, y, hilos):
+    """y(df) da la etiqueta 0/1 de cada fila. Solo el entrenamiento se baraja y se aumenta."""
+    opciones = dict(batch_size=LOTE, num_workers=hilos, pin_memory=True, persistent_workers=hilos > 0)
+    return (DataLoader(Recortes(ent[col_ruta], y(ent), True), shuffle=True, drop_last=True, **opciones),
+            DataLoader(Recortes(val[col_ruta], y(val), False), shuffle=False, **opciones),
+            DataLoader(Recortes(pru[col_ruta], y(pru), False), shuffle=False, **opciones))
 
-    torch.manual_seed(config.SEMILLA); np.random.seed(config.SEMILLA)
-    disp = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    nombre = ("m1" if args.particion == "sujeto" else "m1_aleatoria") + ("_rapido" if args.rapido else "")
-    epocas = 1 if args.rapido else EPOCAS
+
+def entrenar(red, c_ent, c_val, perdida, nombre, epocas, disp):
+    """Bucle de entrenamiento común (Adam, η a la mitad, parada temprana por F1, reanudable).
+    Deja el mejor modelo en <nombre>_mejor.pt y el historial en reportes; devuelve el mejor F1."""
     DIR_MODELOS.mkdir(parents=True, exist_ok=True)
     ruta_ctrl, ruta_mejor = DIR_MODELOS / f"{nombre}_control.pt", DIR_MODELOS / f"{nombre}_mejor.pt"
     ruta_hist = config.REPORTES / f"{nombre}_historial.csv"
-
-    d = pd.read_csv(config.PROCESADO / "dataset.csv", low_memory=False)
-    d = d[d.fuente == "mrl"]
-    col = "particion" if args.particion == "sujeto" else "particion_aleatoria"
-    ent = d[(d[col] == "entrenamiento") & (d["balanceado"] if args.particion == "sujeto" else True)]
-    val, pru = d[d[col] == "validacion"], d[d[col] == "prueba"]
-    if args.rapido:
-        ent, val, pru = (x.sample(min(len(x), 512), random_state=0) for x in (ent, val, pru))
-    print(f"{nombre} en {disp}: entrenamiento {len(ent)}, validación {len(val)}, prueba {len(pru)}")
-
-    opciones = dict(batch_size=LOTE, num_workers=args.hilos, pin_memory=True,
-                    persistent_workers=args.hilos > 0)
-    c_ent = DataLoader(OjosMRL(ent, True), shuffle=True, drop_last=True, **opciones)
-    c_val = DataLoader(OjosMRL(val, False), shuffle=False, **opciones)
-    c_pru = DataLoader(OjosMRL(pru, False), shuffle=False, **opciones)
-
-    red = crear_red().to(disp)
-    print(f"parámetros: {sum(p.numel() for p in red.parameters()):,}")
-    perdida = nn.BCEWithLogitsLoss()  # sigmoide + entropía cruzada binaria, en una sola operación estable
     opt = torch.optim.Adam(red.parameters(), lr=ETA)
     planif = torch.optim.lr_scheduler.ReduceLROnPlateau(opt, factor=0.5, patience=PACIENCIA_ETA)
     escalador = torch.amp.GradScaler(enabled=disp.type == "cuda")
@@ -187,8 +172,39 @@ def main():
                     "escalador": escalador.state_dict(), "epoca": epoca, "mejor_f1": mejor_f1,
                     "sin_mejora": sin_mejora}, ruta_ctrl)
 
-    # Prueba final con el mejor modelo (según F1 de validación)
+    # Se devuelve la red con el mejor modelo (según F1 de validación), lista para la prueba final
     red.load_state_dict(torch.load(ruta_mejor, map_location=disp, weights_only=True))
+    return mejor_f1
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--particion", choices=["sujeto", "aleatoria"], default="sujeto")
+    ap.add_argument("--hilos", type=int, default=2, help="procesos que leen imágenes")
+    ap.add_argument("--rapido", action="store_true", help="prueba corta: pocas imágenes y 1 época")
+    args = ap.parse_args()
+
+    torch.manual_seed(config.SEMILLA); np.random.seed(config.SEMILLA)
+    disp = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    nombre = ("m1" if args.particion == "sujeto" else "m1_aleatoria") + ("_rapido" if args.rapido else "")
+    epocas = 1 if args.rapido else EPOCAS
+
+    d = pd.read_csv(config.PROCESADO / "dataset.csv", low_memory=False)
+    d = d[d.fuente == "mrl"]
+    col = "particion" if args.particion == "sujeto" else "particion_aleatoria"
+    ent = d[(d[col] == "entrenamiento") & (d["balanceado"] if args.particion == "sujeto" else True)]
+    val, pru = d[d[col] == "validacion"], d[d[col] == "prueba"]
+    if args.rapido:
+        ent, val, pru = (x.sample(min(len(x), 512), random_state=0) for x in (ent, val, pru))
+    print(f"{nombre} en {disp}: entrenamiento {len(ent)}, validación {len(val)}, prueba {len(pru)}")
+
+    c_ent, c_val, c_pru = cargadores(ent, val, pru, "ruta_ojo", lambda x: 1 - x["ojo"], args.hilos)  # 1 = cerrado
+    red = crear_red().to(disp)
+    print(f"parámetros: {sum(p.numel() for p in red.parameters()):,}")
+    perdida = nn.BCEWithLogitsLoss()  # sigmoide + entropía cruzada binaria, en una sola operación estable
+    mejor_f1 = entrenar(red, c_ent, c_val, perdida, nombre, epocas, disp)
+
+    # Prueba final con el mejor modelo
     _, y_pru, p_pru = evaluar(red, c_pru, disp, perdida)
     resultado = {"modelo": nombre, "prueba": metricas(y_pru, p_pru), **medir_latencia(red, disp),
                  "dispositivo": torch.cuda.get_device_name(0) if disp.type == "cuda" else "cpu",
