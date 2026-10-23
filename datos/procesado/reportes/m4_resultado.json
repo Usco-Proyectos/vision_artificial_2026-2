@@ -1,0 +1,161 @@
+{
+  "modelo": "m4",
+  "elegido": "rf arboles=300 profundidad=None hoja=5",
+  "prueba": {
+    "exactitud": 0.5936254980079682,
+    "precision": 0.6,
+    "sensibilidad": 0.5222672064777328,
+    "f1": 0.5584415584415585,
+    "VP": 129,
+    "VN": 169,
+    "FP": 86,
+    "FN": 118,
+    "n": 502
+  },
+  "precision_promedio_AP": 0.6781652419862323,
+  "latencia_ms_por_ventana": 61.2642650003545,
+  "mejor_f1_validacion": 0.622568093385214,
+  "exactitud_por_sujeto": {
+    "uta_13": 0.6613,
+    "uta_17": 0.6129,
+    "uta_22": 0.5424,
+    "uta_29": 0.6406,
+    "uta_34": 0.5507,
+    "uta_36": 0.5238,
+    "uta_44": 0.5645,
+    "uta_47": 0.6557
+  },
+  "rejilla": [
+    {
+      "modelo": "svm C=0.1 gamma=0.01",
+      "f1_val": 0.5663716814159292,
+      "exactitud_val": 0.6230769230769231
+    },
+    {
+      "modelo": "svm C=0.1 gamma=0.1",
+      "f1_val": 0.5663716814159292,
+      "exactitud_val": 0.6230769230769231
+    },
+    {
+      "modelo": "svm C=0.1 gamma=1",
+      "f1_val": 0.5663716814159292,
+      "exactitud_val": 0.6230769230769231
+    },
+    {
+      "modelo": "svm C=0.1 gamma=scale",
+      "f1_val": 0.5663716814159292,
+      "exactitud_val": 0.6230769230769231
+    },
+    {
+      "modelo": "svm C=1 gamma=0.01",
+      "f1_val": 0.5663716814159292,
+      "exactitud_val": 0.6230769230769231
+    },
+    {
+      "modelo": "svm C=1 gamma=0.1",
+      "f1_val": 0.5663716814159292,
+      "exactitud_val": 0.6230769230769231
+    },
+    {
+      "modelo": "svm C=1 gamma=1",
+      "f1_val": 0.5806451612903225,
+      "exactitud_val": 0.65
+    },
+    {
+      "modelo": "svm C=1 gamma=scale",
+      "f1_val": 0.5663716814159292,
+      "exactitud_val": 0.6230769230769231
+    },
+    {
+      "modelo": "svm C=10 gamma=0.01",
+      "f1_val": 0.5663716814159292,
+      "exactitud_val": 0.6230769230769231
+    },
+    {
+      "modelo": "svm C=10 gamma=0.1",
+      "f1_val": 0.56,
+      "exactitud_val": 0.6192307692307693
+    },
+    {
+      "modelo": "svm C=10 gamma=1",
+      "f1_val": 0.5849056603773585,
+      "exactitud_val": 0.6615384615384615
+    },
+    {
+      "modelo": "svm C=10 gamma=scale",
+      "f1_val": 0.5727272727272728,
+      "exactitud_val": 0.6384615384615384
+    },
+    {
+      "modelo": "svm C=100 gamma=0.01",
+      "f1_val": 0.56,
+      "exactitud_val": 0.6192307692307693
+    },
+    {
+      "modelo": "svm C=100 gamma=0.1",
+      "f1_val": 0.5675675675675677,
+      "exactitud_val": 0.6307692307692307
+    },
+    {
+      "modelo": "svm C=100 gamma=1",
+      "f1_val": 0.5929203539823009,
+      "exactitud_val": 0.6461538461538462
+    },
+    {
+      "modelo": "svm C=100 gamma=scale",
+      "f1_val": 0.5428571428571428,
+      "exactitud_val": 0.6307692307692307
+    },
+    {
+      "modelo": "rf arboles=300 profundidad=3 hoja=1",
+      "f1_val": 0.5844748858447488,
+      "exactitud_val": 0.65
+    },
+    {
+      "modelo": "rf arboles=300 profundidad=3 hoja=5",
+      "f1_val": 0.5871559633027522,
+      "exactitud_val": 0.6538461538461539
+    },
+    {
+      "modelo": "rf arboles=300 profundidad=3 hoja=20",
+      "f1_val": 0.5898617511520737,
+      "exactitud_val": 0.6576923076923077
+    },
+    {
+      "modelo": "rf arboles=300 profundidad=5 hoja=1",
+      "f1_val": 0.5803571428571428,
+      "exactitud_val": 0.6384615384615384
+    },
+    {
+      "modelo": "rf arboles=300 profundidad=5 hoja=5",
+      "f1_val": 0.5964912280701754,
+      "exactitud_val": 0.6461538461538462
+    },
+    {
+      "modelo": "rf arboles=300 profundidad=5 hoja=20",
+      "f1_val": 0.5814977973568283,
+      "exactitud_val": 0.6346153846153846
+    },
+    {
+      "modelo": "rf arboles=300 profundidad=None hoja=1",
+      "f1_val": 0.582375478927203,
+      "exactitud_val": 0.5807692307692308
+    },
+    {
+      "modelo": "rf arboles=300 profundidad=None hoja=5",
+      "f1_val": 0.622568093385214,
+      "exactitud_val": 0.6269230769230769
+    },
+    {
+      "modelo": "rf arboles=300 profundidad=None hoja=20",
+      "f1_val": 0.6050420168067226,
+      "exactitud_val": 0.6384615384615384
+    }
+  ],
+  "importancia": {
+    "ear_medio": 0.4749,
+    "perclos": 0.1016,
+    "parpadeos": 0.0502,
+    "mar_max": 0.3733
+  }
+}

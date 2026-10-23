@@ -1,0 +1,28 @@
+{
+  "modelo": "m3_congelada",
+  "prueba": {
+    "exactitud": 0.5199203187250996,
+    "precision": 0.507177033492823,
+    "sensibilidad": 0.8582995951417004,
+    "f1": 0.637593984962406,
+    "VP": 212,
+    "VN": 49,
+    "FP": 206,
+    "FN": 35,
+    "n": 502
+  },
+  "precision_promedio_AP": 0.6194896398489184,
+  "latencia_ms_por_ventana": 11.615386999910697,
+  "dispositivo": "NVIDIA GeForce RTX 3050 6GB Laptop GPU",
+  "mejor_f1_validacion": 0.653631284916201,
+  "exactitud_por_sujeto": {
+    "uta_13": 0.5,
+    "uta_17": 0.5,
+    "uta_22": 0.9322,
+    "uta_29": 0.5,
+    "uta_34": 0.6087,
+    "uta_36": 0.127,
+    "uta_44": 0.5,
+    "uta_47": 0.5082
+  }
+}

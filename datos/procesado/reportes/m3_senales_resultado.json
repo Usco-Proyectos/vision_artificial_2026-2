@@ -1,0 +1,28 @@
+{
+  "modelo": "m3_senales",
+  "prueba": {
+    "exactitud": 0.601593625498008,
+    "precision": 0.6496815286624203,
+    "sensibilidad": 0.41295546558704455,
+    "f1": 0.504950495049505,
+    "VP": 102,
+    "VN": 200,
+    "FP": 55,
+    "FN": 145,
+    "n": 502
+  },
+  "precision_promedio_AP": 0.6546440382588541,
+  "latencia_ms_por_ventana": 1.7371339991223067,
+  "dispositivo": "NVIDIA GeForce RTX 3050 6GB Laptop GPU",
+  "mejor_f1_validacion": 0.5741626794258373,
+  "exactitud_por_sujeto": {
+    "uta_13": 0.7258,
+    "uta_17": 0.5645,
+    "uta_22": 0.8644,
+    "uta_29": 0.6562,
+    "uta_34": 0.5362,
+    "uta_36": 0.3968,
+    "uta_44": 0.5645,
+    "uta_47": 0.5246
+  }
+}
