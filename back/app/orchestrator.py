@@ -48,51 +48,46 @@ class CascadaSeguridad:
         self.m4 = 0
 
     def step(self, m1_prob: Optional[Sequence[float]], m2_prob: Optional[float],
-             m3_pred: Optional[int] = None, m4_pred: Optional[int] = None) -> Veredicto:
+         m3_pred: Optional[int] = None, m4_pred: Optional[int] = None) -> Veredicto:
         """
-        Se llama UNA vez por frame de entrada (30 FPS).
-        
-        Args:
-            m1_prob: lista [p_ojo_der, p_ojo_izq] o None si no hubo rostro
-            m2_prob: float o None si no hubo rostro
-            m3_pred: predicción de M3 (0 o 1) o None si no hay ventana nueva
-            m4_pred: predicción de M4 (0 o 1) o None si no hay ventana nueva
-        
-        Returns:
-            Veredicto con el resultado de la cascada
+        Se llama UNA vez por frame de entrada.
+        Lógica relajada para respuesta rápida en tiempo real:
+        - C1: ojos cerrados sostenidos (N frames seguidos)
+        - C2: M3 detecta somnolencia en ventana
+        - C3: bostezo sostenido (N frames) - ya no requiere M4
         """
         u = self.u
         
-        # ── M1: ojo cerrado si AL MENOS UNO está cerrado (OR lógico) ──
         if m1_prob is not None:
             cerrado_der = m1_prob[0] >= u.prob_m1
             cerrado_izq = m1_prob[1] >= u.prob_m1
-            cerrado = cerrado_der or cerrado_izq  # OR lógico
+            cerrado = cerrado_der or cerrado_izq
         else:
             cerrado = False
         
-        self._ojos = self._ojos + 1 if cerrado else 0
+        if not cerrado:
+            self._ojos = 0
+        else:
+            self._ojos += 1
         
-        # ── M2: bostezo ──
         yawn = m2_prob is not None and m2_prob >= u.prob_m2
         self._bost = self._bost + 1 if yawn else 0
 
-        # ── M3 y M4: actualizar si hay predicción nueva ──
         if m3_pred is not None:
             self.m3 = int(m3_pred)
         if m4_pred is not None:
             self.m4 = int(m4_pred)
 
-        # ── Aplicar cascada (cortocircuito) ──
-        sostenido = self._ojos > u.frames_ojos          # "por MÁS de N frames seguidos"
+   
+        sostenido = self._ojos >= u.frames_ojos
         bostezo = self._bost >= u.frames_bostezo
 
         if sostenido:
             v, regla = 1, "C1_OJOS_CERRADOS_M1"
         elif self.m3 == 1:
             v, regla = 1, "C2_SOMNOLENCIA_M3"
-        elif bostezo and self.m4 == 1:
-            v, regla = 1, "C3_BOSTEZO_M2_Y_DESCRIPTORES_M4"
+        elif bostezo:
+            v, regla = 1, "C3_BOSTEZO_SOSTENIDO_M2"
         else:
             v, regla = 0, "BASE"
         
