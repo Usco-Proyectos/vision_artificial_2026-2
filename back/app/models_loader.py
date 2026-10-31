@@ -151,6 +151,7 @@ class Modelos:
     m2: nn.Module      # MobileNetV3-Small para boca (96x96 gris→3 canales)
     m3: nn.Module      # CnnLstm(senales=True) para somnolencia por video
     m4: Any            # Pipeline SVM o RandomForest de scikit-learn
+    kss: Any           # regresión lineal: KSS estimado (0-10) para el indicador de la app, no dispara alerta
 
 
 def cargar_modelos() -> Modelos:
@@ -183,6 +184,8 @@ def cargar_modelos() -> Modelos:
     # Cargar modelo scikit-learn
     log.info("\n Cargando M4 (descriptores)...")
     m4 = joblib.load(C.RUTA_M4)
+    if "n_jobs" in m4.get_params():
+        m4.set_params(n_jobs=1)  # con una sola ventana, repartir en varios núcleos tarda más (72 ms vs ~7 ms)
     log.info(" Cargado %s", C.RUTA_M4.name)
     
     # Validar que M4 tenga las features esperadas
@@ -191,9 +194,12 @@ def cargar_modelos() -> Modelos:
         if m4.n_features_in_ != len(C.FEATURES_M4):
             log.warning("  M4 espera %d features pero config.py define %d",
                        m4.n_features_in_, len(C.FEATURES_M4))
+
+    kss = joblib.load(C.RUTA_KSS)
+    log.info(" Cargado %s", C.RUTA_KSS.name)
     
     log.info("\n" + "=" * 60)
     log.info(" Todos los modelos cargados exitosamente")
     log.info("=" * 60)
     
-    return Modelos(m1=m1, m2=m2, m3=m3, m4=m4)
+    return Modelos(m1=m1, m2=m2, m3=m3, m4=m4, kss=kss)

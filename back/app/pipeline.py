@@ -53,6 +53,8 @@ class Pipeline:
             # Buffer de descriptores para M4: (ear_der, ear_izq, mar) o None
             self.buf_desc = deque(maxlen=C.VENTANA_M3)
             self.m3_estado, self.m3_prob = "sin_ventana", None
+            self.m4_prob = self.kss = None
+            self._ultima_muestra = float("-inf")
             self.cascada.reiniciar()
             self._ultima_m1_der = None
             self._ultima_m1_izq = None
@@ -101,7 +103,7 @@ class Pipeline:
 
     def _muestrear(self, ext) -> tuple:
         """
-        Muestrea cada STRIDE_M3 frames. Construye la señal para M3 y descriptores para M4.
+        Se llama cada 1/FPS_M3 segundos. Construye la señal para M3 y descriptores para M4.
         Devuelve (m3_pred, m4_pred) o (None, None) si no hay datos suficientes.
         """
         senal = self._construir_senal(ext)
@@ -149,8 +151,11 @@ class Pipeline:
         
         # M4 espera un DataFrame con nombres de columnas
         df_m4 = pd.DataFrame([features_m4], columns=C.FEATURES_M4)
-        m4_pred = predecir_m4(self.mod.m4, df_m4)
-        
+        # M4 vota en la cascada (ver orchestrator.py); el KSS estimado solo se muestra como indicador
+        self.m4_prob = predecir_m4(self.mod.m4, df_m4)
+        self.kss = float(np.clip(self.mod.kss.predict(df_m4)[0], 0, 10))
+        m4_pred = int(self.m4_prob >= C.UMBRAL_PROB_M4)
+
         return m3_pred, m4_pred
 
     def procesar_bytes(self, data: bytes) -> Optional[dict]:
@@ -181,7 +186,9 @@ class Pipeline:
             tm["m1_m2"] = time.perf_counter()
 
             m3_pred = m4_pred = None
-            if (self.n_frames - 1) % C.STRIDE_M3 == 0:
+            # por tiempo y no por número de fotogramas: la app no manda las fotos a un ritmo fijo
+            if t0 - self._ultima_muestra >= 1 / C.FPS_M3:
+                self._ultima_muestra = t0
                 m3_pred, m4_pred = self._muestrear(ext)
             tm["m3_m4"] = time.perf_counter()
 
@@ -194,6 +201,7 @@ class Pipeline:
                 "frame": self.n_frames,
                 "veredicto": v.veredicto,
                 "regla_activada": v.regla,
+                "votos": v.votos,
                 "rostro_detectado": ext is not None,
                 "modelos": {
                     "m1": {
@@ -216,7 +224,9 @@ class Pipeline:
                         "frames_validos": sum(1 for s in self.buf_senales if s is not None)
                     },
                     "m4": {
-                        "prediccion": v.m4
+                        "prediccion": v.m4,
+                        "prob": self.m4_prob,
+                        "kss_estimado": self.kss
                     },
                 },
                 "rendimiento": {
