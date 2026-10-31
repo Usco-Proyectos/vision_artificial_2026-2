@@ -19,8 +19,9 @@ IDX_OJO_DER = [33, 160, 158, 133, 153, 144]   # ojo DERECHO del sujeto
 IDX_OJO_IZQ = [362, 385, 387, 263, 373, 380]  # ojo IZQUIERDO del sujeto
 IDX_LABIO_EXT = [61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291,
                  185, 40, 39, 37, 0, 267, 269, 270, 409]
-MAR_VERTICALES = [(82, 87), (13, 14), (312, 317)]
-MAR_HORIZONTAL = (78, 308)
+# Los mismos puntos del entrenamiento (src/dataset/rostro.py, ec. 6 del artículo)
+MAR_VERTICALES = [(81, 178), (13, 14), (311, 402)]
+MAR_HORIZONTAL = (61, 291)
 
 _MEAN = np.array(C.MEDIA, np.float32)
 _STD = np.array(C.STD, np.float32)
