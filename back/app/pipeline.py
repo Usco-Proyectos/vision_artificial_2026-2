@@ -40,7 +40,8 @@ class Pipeline:
         self.extractor = ExtractorRostro()
         self.cascada = CascadaSeguridad(Umbrales())
         self.fps = MedidorFPS()
-        
+        self._frames_sin_rostro = 0
+        self._pausar_envio = False
         # Últimas probabilidades de M1/M2 (para construir señales de M3)
         self._ultima_m1_der = None
         self._ultima_m1_izq = None
@@ -62,6 +63,8 @@ class Pipeline:
             self._ultima_m1_der = None
             self._ultima_m1_izq = None
             self._ultima_m2 = None
+            self._frames_sin_rostro = 0
+            self._pausar_envio = False
 
     def cerrar(self):
         self.extractor.cerrar()
@@ -172,6 +175,18 @@ class Pipeline:
             tm = {}
 
             ext = self.extractor.procesar(frame)
+            
+            # ⭐ NUEVO: Lógica de pausar envío si no hay rostro
+            if ext is None:
+                self._frames_sin_rostro += 1
+                # Si lleva más de 15 frames sin rostro (~3 segundos a 5 FPS), pausar
+                if self._frames_sin_rostro > 15:
+                    self._pausar_envio = True
+            else:
+                # Si detecta rostro, resetear contador y despausar
+                self._frames_sin_rostro = 0
+                self._pausar_envio = False
+            
             tm["extraccion"] = time.perf_counter()
 
             m1_prob = m2_prob = None
@@ -189,7 +204,6 @@ class Pipeline:
             tm["m1_m2"] = time.perf_counter()
 
             m3_pred = m4_pred = None
-            # por tiempo y no por número de fotogramas: la app no manda las fotos a un ritmo fijo
             if t0 - self._ultima_muestra >= 1 / C.FPS_M3:
                 self._ultima_muestra = t0
                 m3_pred, m4_pred = self._muestrear(ext)
@@ -211,9 +225,14 @@ class Pipeline:
                     "m3_prob": self.m3_prob if self.m3_prob else 0.0,
                     "m4_pred": v.m4 if v.m4 else 0,
                     "latencia_ms": round((t_fin - t0) * 1000, 2),
-                    "fps_backend": round(fps, 1)
+                    "fps_backend": round(fps, 1),
+                    "extraccion_ms": round((tm["extraccion"] - t0) * 1000, 2),
+                    "m1_m2_ms": round((tm["m1_m2"] - tm["extraccion"]) * 1000, 2),
+                    "m3_m4_ms": round((tm["m3_m4"] - tm["m1_m2"]) * 1000, 2),
+                    "muestreo_m3": 1 if m3_pred is not None else 0,
+                    "rostro": 1 if ext is not None else 0,
                 }
-                
+
                 file_exists = os.path.isfile(C.RUTA_LOG_PRUEBA)
                 with open(C.RUTA_LOG_PRUEBA, mode='a', newline='', encoding='utf-8') as f:
                     writer = csv.DictWriter(f, fieldnames=log_data.keys())
@@ -227,6 +246,8 @@ class Pipeline:
                 "veredicto": v.veredicto,
                 "regla_activada": v.regla,
                 "rostro_detectado": ext is not None,
+                # ⭐ NUEVO: Flag de pausar envío
+                "pausar_envio": self._pausar_envio,
                 "modelos": {
                     "m1": {
                         "prob_der": self._ultima_m1_der,
