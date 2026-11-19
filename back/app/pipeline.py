@@ -2,9 +2,12 @@
 pipeline.py — Orquestación por frame: extracción → M1/M2 (cada frame) → buffer 3 FPS (M3/M4) → cascada.
 CORREGIDO: M3 es modo señales (vectores de 6 valores), M4 usa 4 features exactos.
 """
+import csv          
+import os 
 import threading
 import time
 from collections import deque
+from datetime import datetime  
 from typing import Optional
 
 import cv2
@@ -196,12 +199,33 @@ class Pipeline:
             fps = self.fps.tick()
             t_fin = time.perf_counter()
 
+            if C.MODO_PRUEBA_LOCAL:
+                log_data = {
+                    "timestamp": datetime.now().isoformat(),
+                    "frame": self.n_frames,
+                    "veredicto": v.veredicto,
+                    "regla": v.regla,
+                    "m1_prob_der": m1_prob[0] if m1_prob else 0.0,
+                    "m1_prob_izq": m1_prob[1] if m1_prob else 0.0,
+                    "m2_prob": m2_prob if m2_prob else 0.0,
+                    "m3_prob": self.m3_prob if self.m3_prob else 0.0,
+                    "m4_pred": v.m4 if v.m4 else 0,
+                    "latencia_ms": round((t_fin - t0) * 1000, 2),
+                    "fps_backend": round(fps, 1)
+                }
+                
+                file_exists = os.path.isfile(C.RUTA_LOG_PRUEBA)
+                with open(C.RUTA_LOG_PRUEBA, mode='a', newline='', encoding='utf-8') as f:
+                    writer = csv.DictWriter(f, fieldnames=log_data.keys())
+                    if not file_exists:
+                        writer.writeheader()
+                    writer.writerow(log_data)
+
             ms = lambda a, b: round((a - b) * 1000, 2)
             return {
                 "frame": self.n_frames,
                 "veredicto": v.veredicto,
                 "regla_activada": v.regla,
-                "votos": v.votos,
                 "rostro_detectado": ext is not None,
                 "modelos": {
                     "m1": {
