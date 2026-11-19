@@ -1,103 +1,108 @@
 """
-analizar_prueba_real.py
-Calcula automáticamente las métricas de tu prueba en vivo (celular + PC).
+analizar_prueba_real.py — v2
+Métricas de la prueba en vivo: rendimiento, desglose por etapa y detección.
 """
-import pandas as pd
 import numpy as np
-from sklearn.metrics import (confusion_matrix, precision_score,
-                             recall_score, f1_score, accuracy_score)
+import pandas as pd
 import matplotlib.pyplot as plt
+from sklearn.metrics import (accuracy_score, confusion_matrix, f1_score,
+                             precision_score, recall_score)
 
+RUTA_CSV = "../data/log_prueba_real_v2.csv"
 
-# ════════════════════════════════════════════════════════════
 INTERVALOS_SOMNOLIENTOS = [
-    (180, 210),   # Min 3:00 - 3:30 → ojos cerrados
-    (360, 390),   # Min 6:00 - 6:30 → bostezos sostenidos
-    (480, 540),   # Min 8:00 - 9:00 → micro-sueño
+    (180, 210),   # ojos cerrados
+    (360, 390),   # bostezos
+    (480, 540),   # micro-sueño
 ]
-# ════════════════════════════════════════════════════════════
 
-RUTA_CSV = "../data/log_prueba_real.csv"
-
-# 1. Cargar el log que generó el backend durante la prueba
 df = pd.read_csv(RUTA_CSV)
 df["timestamp"] = pd.to_datetime(df["timestamp"])
-
-# Segundos transcurridos desde el primer frame
 t0 = df["timestamp"].iloc[0]
 df["seg"] = (df["timestamp"] - t0).dt.total_seconds()
 
-# 2. Métricas de rendimiento del sistema (100% automáticas)
-fps_promedio = df["fps_backend"].mean()
-latencia_promedio = df["latencia_ms"].mean()
-latencia_p95 = np.percentile(df["latencia_ms"], 95)
+# ═══════════ 1. RENDIMIENTO DEL SISTEMA ═══════════
+d = df.iloc[1:]   # excluye el primer frame (warm-up)
 
-print("=" * 55)
-print("RENDIMIENTO DEL SISTEMA (END-TO-END)")
-print("=" * 55)
-print(f"Frames procesados:     {len(df)}")
-print(f"Duración de la prueba: {df['seg'].iloc[-1]:.1f} segundos")
-print(f"FPS promedio:          {fps_promedio:.2f} fps")
-print(f"Latencia promedio:     {latencia_promedio:.2f} ms")
-print(f"Latencia percentil 95: {latencia_p95:.2f} ms")
+print("=" * 60)
+print("RENDIMIENTO DEL SISTEMA (servidor, sin red ni captura)")
+print("=" * 60)
+print(f"Frames totales:        {len(df)}")
+print(f"Duración de prueba:    {df['seg'].iloc[-1]:.1f} s")
+print(f"FPS promedio:          {d['fps_backend'].mean():.2f} fps")
+print(f"Latencia media:        {d['latencia_ms'].mean():.2f} ms")
+print(f"Latencia mediana:      {d['latencia_ms'].median():.2f} ms")
+print(f"Latencia p95:          {np.percentile(d['latencia_ms'], 95):.2f} ms")
 
-# 3. Construir la verdad terrena a partir de TUS intervalos
+def stats(x, nombre):
+    print(f"{nombre:<32} media={x.mean():6.2f} ms | mediana={x.median():6.2f} ms | "
+          f"p95={np.percentile(x, 95):6.2f} ms | n={len(x)}")
+
+print("\n--- Desglose por etapa ---")
+stats(d["extraccion_ms"], "Extracción (MediaPipe):")
+stats(d.loc[d["rostro"] == 1, "m1_m2_ms"], "M1+M2 (frames con rostro):")
+stats(d.loc[d["muestreo_m3"] == 1, "m3_m4_ms"], "M3+M4 (frames muestreados):")
+
+# ═══════════ 2. DETECCIÓN (vs. ground truth por intervalos) ═══════════
 def verdad(seg):
-    for a, b in INTERVALOS_SOMNOLIENTOS:
-        if a <= seg <= b:
-            return 1
-    return 0
+    return 1 if any(a <= seg <= b for a, b in INTERVALOS_SOMNOLIENTOS) else 0
 
 df["real"] = df["seg"].apply(verdad)
 df["pred"] = df["veredicto"]
 
-# 4. Métricas de detección (automáticas)
-y_true = df["real"].tolist()
-y_pred = df["pred"].tolist()
+tn, fp, fn, tp = confusion_matrix(df["real"], df["pred"], labels=[0, 1]).ravel()
 
-tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
+print("\n" + "=" * 60)
+print("DETECCIÓN EN VIVO")
+("=" * 60)
+print(f"TN={tn}  FP={fp}  FN={fn}  TP={tp}")
+print(f"Accuracy : {accuracy_score(df['real'], df['pred']):.4f}")
+print(f"Precisión: {precision_score(df['real'], df['pred'], zero_division=0):.4f}")
+print(f"Recall   : {recall_score(df['real'], df['pred'], zero_division=0):.4f}")
+print(f"F1-Score : {f1_score(df['real'], df['pred'], zero_division=0):.4f}")
 
-print("\n" + "=" * 55)
-print("DETECCIÓN EN VIVO (sistema vs. tu bitácora)")
-print("=" * 55)
-print(f"Verdaderos Negativos (TN): {tn}  → despierto y NO alertó")
-print(f"Falsos Positivos     (FP): {fp}  → despierto pero SÍ alertó")
-print(f"Falsos Negativos     (FN): {fn}  → somnoliento y NO alertó")
-print(f"Verdaderos Positivos (TP): {tp}  → somnoliento y SÍ alertó")
-print("-" * 55)
-print(f"Accuracy : {accuracy_score(y_true, y_pred):.4f}")
-print(f"Precisión: {precision_score(y_true, y_pred, zero_division=0):.4f}")
-print(f"Recall   : {recall_score(y_true, y_pred, zero_division=0):.4f}")
-print(f"F1-Score : {f1_score(y_true, y_pred, zero_division=0):.4f}")
+print("\n--- Falsas alarmas (FP) por regla ---")
+print(df.loc[(df.real == 0) & (df.pred == 1), "regla"].value_counts().to_string())
+print("\n--- Reglas activadas (total) ---")
+print(df["regla"].value_counts().to_string())
 
-# 5. Figura 1: Matriz de confusión para el artículo
-cm = confusion_matrix(y_true, y_pred, labels=[0, 1])
+# ═══════════ 3. FIGURAS PARA EL ARTÍCULO ═══════════
+# Figura 1: matriz de confusión
+cm = confusion_matrix(df["real"], df["pred"], labels=[0, 1])
 plt.figure(figsize=(6, 5))
 plt.imshow(cm, interpolation="nearest", cmap="Blues")
 plt.colorbar()
 plt.xticks([0, 1], ["Pred: Despierto", "Pred: Somnoliento"])
 plt.yticks([0, 1], ["Real: Despierto", "Real: Somnoliento"])
+umbral = cm.max() / 2
 for i in range(cm.shape[0]):
     for j in range(cm.shape[1]):
-        plt.text(j, i, f"{cm[i, j]}", ha="center", va="center")
-plt.title("Matriz de Confusión - Prueba en Tiempo Real")
-plt.ylabel("Valor Real")
-plt.xlabel("Predicción del Sistema")
-plt.tight_layout()
-plt.savefig("matriz_confusion_prueba_real.png", dpi=300)
-print("\n Guardado: matriz_confusion_prueba_real.png")
+        plt.text(j, i, f"{cm[i, j]:d}", ha="center", va="center",
+                 color="white" if cm[i, j] > umbral else "black")
+plt.title("Matriz de confusión - prueba en tiempo real")
+plt.ylabel("Valor real"); plt.xlabel("Predicción del sistema")
+plt.tight_layout(); plt.savefig("fig_matriz_confusion.png", dpi=300)
 
-# 6. Figura 2: Probabilidades en el tiempo (zonas rojas = tus simulaciones)
+# Figura 2: probabilidades vs. eventos simulados
 plt.figure(figsize=(12, 5))
 plt.plot(df["seg"], df["m1_prob_der"], label="M1 ojo der", alpha=0.6)
 plt.plot(df["seg"], df["m3_prob"], label="M3 somnolencia", linewidth=2)
 for a, b in INTERVALOS_SOMNOLIENTOS:
     plt.axvspan(a, b, color="red", alpha=0.15)
 plt.axhline(0.5, color="r", linestyle="--", label="Umbral 0.5")
-plt.xlabel("Segundos desde el inicio de la prueba")
-plt.ylabel("Probabilidad")
-plt.title("Probabilidades del sistema vs. eventos simulados (zonas rojas)")
-plt.legend()
-plt.tight_layout()
-plt.savefig("grafico_probabilidades_tiempo.png", dpi=300)
-print("✅ Guardado: grafico_probabilidades_tiempo.png")
+plt.xlabel("Segundos desde inicio"); plt.ylabel("Probabilidad")
+plt.title("Probabilidades vs. eventos simulados (zonas rojas)")
+plt.legend(); plt.tight_layout(); plt.savefig("fig_probabilidades.png", dpi=300)
+
+# Figura 3: latencia media por etapa
+etapas = ["Extracción", "M1+M2", "M3+M4"]
+medias = [d["extraccion_ms"].mean(),
+          d.loc[d["rostro"] == 1, "m1_m2_ms"].mean(),
+          d.loc[d["muestreo_m3"] == 1, "m3_m4_ms"].mean()]
+plt.figure(figsize=(7, 4.5))
+plt.bar(etapas, medias, color=["#3b82f6", "#10b981", "#f59e0b"])
+plt.ylabel("Latencia media (ms)")
+plt.title("Latencia media por etapa del pipeline")
+plt.tight_layout(); plt.savefig("fig_latencia_etapas.png", dpi=300)
+
+print("\n Figuras guardadas: fig_matriz_confusion.png, fig_probabilidades.png, fig_latencia_etapas.png")

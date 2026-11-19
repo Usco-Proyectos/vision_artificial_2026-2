@@ -56,4 +56,4 @@ MIN_FRAMES_M4 = 3
 
 # ═══════════ MODO PRUEBA LOCAL ═══════════
 MODO_PRUEBA_LOCAL = True  # Cambiar a False cuando termines las pruebas
-RUTA_LOG_PRUEBA = BASE_DIR / "data" / "log_prueba_real.csv"
+RUTA_LOG_PRUEBA = BASE_DIR / "data" / "log_prueba_real_v2.csv"
