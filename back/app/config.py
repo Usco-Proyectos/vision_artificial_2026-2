@@ -53,3 +53,7 @@ MARGEN_OJO = 0.8
 MARGEN_BOCA = 0.5
 MAX_LADO_PROCESO = 480
 MIN_FRAMES_M4 = 3  
+
+# ═══════════ MODO PRUEBA LOCAL ═══════════
+MODO_PRUEBA_LOCAL = True  # Cambiar a False cuando termines las pruebas
+RUTA_LOG_PRUEBA = BASE_DIR / "data" / "log_prueba_real.csv"
